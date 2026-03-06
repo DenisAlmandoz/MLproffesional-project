@@ -21,6 +21,11 @@ class ProjectConfig:
     schema: str = os.getenv("DBX_SCHEMA", "ml_exam")
     experiment_name: str = os.getenv("MLFLOW_EXPERIMENT_NAME", "/Shared/ml_exam_project")
     model_name: str = os.getenv("MODEL_NAME", "main.ml_exam.exam_candidate_model")
+    local_seed_data_path: str = os.getenv("SEED_DATA_PATH", "/dbfs/tmp/ml_exam/raw/events.csv")
+
+    @property
+    def bronze_events_table(self) -> str:
+        return f"{self.catalog}.{self.schema}.bronze_events"
 
     @property
     def feature_table(self) -> str:

@@ -17,6 +17,13 @@ resources:
       name: ${var.catalog}.${var.schema}.exam_candidate_model
 
   jobs:
+    data_ingestion_job:
+      name: ml-data-ingestion
+      tasks:
+        - task_key: ingest_seed_data
+          spark_python_task:
+            python_file: ../scripts/run_data_ingestion.py
+
     feature_pipeline_job:
       name: ml-feature-pipeline
       tasks:

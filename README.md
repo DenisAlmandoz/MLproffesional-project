@@ -14,21 +14,39 @@ This repository provides a **production-style Databricks machine learning projec
 ## Project Layout
 
 - `src/databricks_ml_project/`: core implementation modules
-- `scripts/`: thin orchestration entry points for Databricks jobs
+- `scripts/`: orchestration entry points for Databricks jobs
 - `dab/`: Databricks Asset Bundle configuration scaffold
 - `tests/`: unit + integration-style tests for core logic
+
+## Built-in Data Ingestion (Yes, data is included now)
+
+This project now includes built-in synthetic data generation and ingestion so you can run it immediately in Databricks:
+
+- `src/databricks_ml_project/data_ingestion.py`
+  - Generates reproducible synthetic events CSV with `customer_id`, `event_ts`, `amount`, `region`, and `label`.
+  - Reads typed raw CSV into Spark.
+  - Ingests into Delta bronze table.
+  - Initializes training table from bronze.
+- `scripts/run_data_ingestion.py`
+  - Job entrypoint that runs the full data bootstrap.
+
+Default generated raw file location:
+- `/dbfs/tmp/ml_exam/raw/events.csv`
+
+Default Delta tables:
+- `main.ml_exam.bronze_events`
+- `main.ml_exam.training_events`
 
 ## How to Use in Databricks
 
 1. Import this repository into Databricks Repos.
-2. Create a Databricks Asset Bundle deployment target using `dab/databricks.yml`.
-3. Attach a Databricks ML runtime cluster (or serverless workflows where supported).
-4. Run orchestration scripts as Databricks Jobs tasks:
+2. Create catalog/schema (if missing), then deploy bundle from `dab/databricks.yml`.
+3. Run `scripts/run_data_ingestion.py` first to generate and ingest seed data.
+4. Run the remaining orchestration scripts as Databricks Jobs tasks:
    - `scripts/run_feature_pipeline.py`
    - `scripts/run_training.py`
    - `scripts/run_monitoring.py`
    - `scripts/run_retraining.py`
-5. Configure secrets and Unity Catalog names via environment variables.
 
 ## Environment Variables
 
@@ -36,6 +54,7 @@ This repository provides a **production-style Databricks machine learning projec
 - `DBX_SCHEMA` (default: `ml_exam`)
 - `MLFLOW_EXPERIMENT_NAME` (default: `/Shared/ml_exam_project`)
 - `MODEL_NAME` (default: `main.ml_exam.exam_candidate_model`)
+- `SEED_DATA_PATH` (default: `/dbfs/tmp/ml_exam/raw/events.csv`)
 
 ## Notes
 
