@@ -40,13 +40,84 @@ Default Delta tables:
 ## How to Use in Databricks
 
 1. Import this repository into Databricks Repos.
-2. Create catalog/schema (if missing), then deploy bundle from `dab/databricks.yml`.
-3. Run `scripts/run_data_ingestion.py` first to generate and ingest seed data.
-4. Run the remaining orchestration scripts as Databricks Jobs tasks:
-   - `scripts/run_feature_pipeline.py`
-   - `scripts/run_training.py`
-   - `scripts/run_monitoring.py`
-   - `scripts/run_retraining.py`
+2. Create or confirm Unity Catalog objects exist:
+   - Catalog: `main` (or your `DBX_CATALOG` value)
+   - Schema: `ml_exam` (or your `DBX_SCHEMA` value)
+3. Set environment variables for your workspace/job (optional if using defaults):
+   - `DBX_CATALOG`, `DBX_SCHEMA`, `MLFLOW_EXPERIMENT_NAME`, `MODEL_NAME`, `SEED_DATA_PATH`
+4. Deploy the Databricks Asset Bundle from `dab/databricks.yml`.
+
+## End-to-End Run Order (What to run first, second, etc.)
+
+Follow this exact order for a full lifecycle run:
+
+### Step 0 — Bootstrap tables and raw data (run first)
+
+Run:
+- `scripts/run_data_ingestion.py`
+
+What it does:
+- Generates synthetic events CSV in DBFS (default `/dbfs/tmp/ml_exam/raw/events.csv`).
+- Ingests raw events into bronze Delta table (`main.ml_exam.bronze_events`).
+- Creates/initializes training table (`main.ml_exam.training_events`).
+
+### Step 1 — Build features
+
+Run:
+- `scripts/run_feature_pipeline.py`
+
+What it does:
+- Prepares the feature engineering workflow scaffold and target feature table configuration.
+- Provides point-in-time/online-feature guidance for productionizing the feature pipeline.
+
+### Step 2 — Train and tune model
+
+Run:
+- `scripts/run_training.py`
+
+What it does:
+- Reads training-table/experiment configuration.
+- Serves as training task entrypoint for SparkML + tracking modules in `src/databricks_ml_project/`.
+
+### Step 3 — Run monitoring
+
+Run:
+- `scripts/run_monitoring.py`
+
+What it does:
+- Builds Lakehouse Monitoring payload for inference tables.
+- Supports drift/alert workflows via monitoring utilities.
+
+### Step 4 — Evaluate retraining trigger
+
+Run:
+- `scripts/run_retraining.py`
+
+What it does:
+- Demonstrates retraining decision logic based on drift/performance conditions.
+- Supports model selection logic in retraining pipelines.
+
+### Step 5 — Deploy and serve model (after validation)
+
+Use deployment helpers in:
+- `src/databricks_ml_project/deployment.py`
+- `src/databricks_ml_project/mlflow_tracking.py`
+
+What it does:
+- Registers custom pyfunc models.
+- Builds canary/blue-green rollout payloads for Databricks Model Serving.
+
+## Suggested Job Dependency Order in Databricks Workflows
+
+When creating a multi-task Databricks Job, define dependencies in this order:
+
+1. `ingest_seed_data`
+2. `build_features`
+3. `train_model`
+4. `monitor`
+5. `retrain`
+
+This ensures all downstream tasks have the required upstream data/assets.
 
 ## Environment Variables
 
