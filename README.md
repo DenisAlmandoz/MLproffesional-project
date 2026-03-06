@@ -45,7 +45,36 @@ Default Delta tables:
    - Schema: `ml_exam` (or your `DBX_SCHEMA` value)
 3. Set environment variables for your workspace/job (optional if using defaults):
    - `DBX_CATALOG`, `DBX_SCHEMA`, `MLFLOW_EXPERIMENT_NAME`, `MODEL_NAME`, `SEED_DATA_PATH`
+
+   Where to define these variables:
+   - **Databricks Workflows Job UI (recommended):**
+     - Jobs -> your job -> Edit task -> *Environment variables*.
+     - Add key/value pairs per task (for example on `ingest_seed_data`, `train_model`, etc.).
+     - Use the same values for every task that imports `CONFIG` from `src/databricks_ml_project/config.py`.
+
+     Example values to add:
+     - `DBX_CATALOG=main`
+     - `DBX_SCHEMA=ml_exam`
+     - `MLFLOW_EXPERIMENT_NAME=/Shared/ml_exam_project`
+     - `MODEL_NAME=main.ml_exam.exam_candidate_model`
+     - `SEED_DATA_PATH=/dbfs/tmp/ml_exam/raw/events.csv`
+   - **Databricks notebook/script runtime (temporary):**
+     - In a notebook cell before running scripts:
+       - `import os`
+       - `os.environ["DBX_CATALOG"] = "main"`
+   - **Databricks Asset Bundle variables (deployment-time):**
+     - Use `--var` flags with bundle commands, for example:
+       - `databricks bundle deploy --target dev --var="catalog=main" --var="schema=ml_exam"`
+     - This controls bundle resource names/values at deploy time.
+   - **GitHub Actions (for CI/CD):**
+     - Use repository/environment secrets for sensitive values (for example tokens), and workflow `env:` for non-sensitive defaults.
+
 4. Deploy the Databricks Asset Bundle from `dab/databricks.yml`.
+
+
+### Quick answer: where should these be defined?
+
+If you are running this project as Databricks Jobs, define them in the **Job Task Environment Variables** section for each task. That is the primary and recommended location.
 
 ## End-to-End Run Order (What to run first, second, etc.)
 
