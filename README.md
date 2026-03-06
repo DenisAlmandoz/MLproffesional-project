@@ -119,6 +119,34 @@ When creating a multi-task Databricks Job, define dependencies in this order:
 
 This ensures all downstream tasks have the required upstream data/assets.
 
+
+## CI/CD Automation (GitHub Actions)
+
+This repository now includes CI and CD workflows:
+
+- `.github/workflows/ci.yml`
+  - Runs on pull requests and pushes.
+  - Installs dependencies, compiles Python files, and runs `pytest`.
+
+- `.github/workflows/cd.yml`
+  - Deploys Databricks Asset Bundle (`dab/databricks.yml`) to your workspace.
+  - Triggered automatically on push to `main` or manually with `workflow_dispatch`.
+  - Supports deployment targets `dev` and `prod`.
+
+### Required GitHub Secrets for CD
+
+Set these repository secrets before running CD:
+
+- `DATABRICKS_HOST` (for example: `https://dbc-xxxxxxxx.cloud.databricks.com`)
+- `DATABRICKS_TOKEN` (PAT or service principal token with bundle deploy permissions)
+
+### Recommended release flow
+
+1. Open PR -> CI runs (`compileall` + `pytest`).
+2. Merge to `main` after CI passes.
+3. CD automatically validates and deploys bundle to `dev` target by default.
+4. Use manual dispatch to deploy to `prod` when ready.
+
 ## Environment Variables
 
 - `DBX_CATALOG` (default: `main`)
