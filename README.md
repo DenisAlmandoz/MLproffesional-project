@@ -168,6 +168,7 @@ This repository now includes CI and CD workflows:
 - If `databricks bundle validate --target dev` fails with `default auth: cannot configure default credentials`, configure auth secrets in GitHub (`DATABRICKS_TOKEN` or `DATABRICKS_CLIENT_ID` + `DATABRICKS_CLIENT_SECRET`) and rerun.
 - CD runs bundle commands from `dab/`, so the bundle root is `dab/databricks.yml`.
 - If you see `Provided PAT token does not have required scopes: scim`, switch CD auth to OAuth M2M (`DATABRICKS_CLIENT_ID` + `DATABRICKS_CLIENT_SECRET`) or use a PAT with the required scopes in your workspace.
+- If you see `path .../scripts/... is not contained in sync root path`, ensure the bundle includes repo-level sync paths. This project sets `sync.paths` in `dab/databricks.yml` to include `../scripts`, `../src`, and `../pyproject.toml`.
 
 ### Required GitHub Secrets for CD
 

@@ -7,6 +7,13 @@ variables:
   schema:
     default: ml_exam
 
+sync:
+  paths:
+    - .
+    - ../scripts
+    - ../src
+    - ../pyproject.toml
+
 resources:
   experiments:
     ml_exam_experiment:
