@@ -15,7 +15,7 @@ This repository provides a **production-style Databricks machine learning projec
 
 - `src/databricks_ml_project/`: core implementation modules
 - `scripts/`: orchestration entry points for Databricks jobs
-- `dab/`: Databricks Asset Bundle configuration scaffold
+- `dab/`: Databricks Asset Bundle configuration scaffold (contains one multi-task lifecycle job)
 - `tests/`: unit + integration-style tests for core logic
 
 ## Built-in Data Ingestion (Yes, data is included now)
@@ -136,9 +136,17 @@ What it does:
 - Registers custom pyfunc models.
 - Builds canary/blue-green rollout payloads for Databricks Model Serving.
 
+## Bundle Job Design (single reusable job)
+
+The bundle now defines **one Databricks job** (`ml_lifecycle_job`) in `resources.jobs` and runs the full project using task dependencies:
+
+`ingest_seed_data -> build_features -> train_model -> monitor -> retrain`
+
+This keeps deployment simpler while still preserving end-to-end lifecycle order in one reusable job definition.
+
 ## Suggested Job Dependency Order in Databricks Workflows
 
-When creating a multi-task Databricks Job, define dependencies in this order:
+The bundled `ml_lifecycle_job` already defines dependencies in this order:
 
 1. `ingest_seed_data`
 2. `build_features`
