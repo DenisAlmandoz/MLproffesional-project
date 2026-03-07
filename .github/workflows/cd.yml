@@ -1,0 +1,75 @@
+name: CD - Deploy Databricks Bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Databricks bundle target to deploy"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prod
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-bundle:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_TARGET: ${{ github.event.inputs.target || 'dev' }}
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_CLUSTER_ID: ${{ secrets.DATABRICKS_CLUSTER_ID }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Databricks CLI
+        uses: databricks/setup-cli@main
+
+      - name: Verify Databricks credentials are configured
+        run: |
+          if [ -z "${DATABRICKS_HOST}" ]; then
+            echo "DATABRICKS_HOST secret must be configured."
+            exit 1
+          fi
+
+
+          if [ -n "${DATABRICKS_CLIENT_ID}" ] && [ -n "${DATABRICKS_CLIENT_SECRET}" ]; then
+            echo "DATABRICKS_AUTH_TYPE=oauth-m2m" >> "$GITHUB_ENV"
+            echo "Using OAuth M2M authentication (recommended)."
+            exit 0
+          fi
+
+          if [ -n "${DATABRICKS_TOKEN}" ]; then
+            echo "DATABRICKS_AUTH_TYPE=pat" >> "$GITHUB_ENV"
+            echo "Using PAT authentication. Ensure PAT has required scopes (including SCIM if your workspace enforces it)."
+            exit 0
+          fi
+
+          echo "Provide either PAT auth (DATABRICKS_TOKEN) or OAuth M2M auth (DATABRICKS_CLIENT_ID + DATABRICKS_CLIENT_SECRET)."
+          exit 1
+
+      - name: Validate bundle
+        working-directory: ./dab
+        run: databricks bundle validate --target "${BUNDLE_TARGET}"
+
+      - name: Deploy bundle
+        if: env.DATABRICKS_CLUSTER_ID != ""
+        working-directory: ./dab
+        run: databricks bundle deploy --target "${BUNDLE_TARGET}" --var="existing_cluster_id=${DATABRICKS_CLUSTER_ID}"
+
+      - name: Skip deploy when cluster id is not configured
+        if: env.DATABRICKS_CLUSTER_ID == ""
+        run: echo "Skipping deploy: set DATABRICKS_CLUSTER_ID secret to enable deployment."
