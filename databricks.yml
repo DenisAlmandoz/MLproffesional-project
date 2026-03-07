@@ -1,0 +1,63 @@
+bundle:
+  name: ml_exam_lifecycle_project
+
+variables:
+  catalog:
+    default: main
+  schema:
+    default: ml_exam
+
+resources:
+  experiments:
+    ml_exam_experiment:
+      name: /Shared/ml_exam_project
+
+  registered_models:
+    exam_candidate_model:
+      name: ${var.catalog}.${var.schema}.exam_candidate_model
+
+  jobs:
+    data_ingestion_job:
+      name: ml-data-ingestion
+      tasks:
+        - task_key: ingest_seed_data
+          spark_python_task:
+            python_file: ../scripts/run_data_ingestion.py
+
+    feature_pipeline_job:
+      name: ml-feature-pipeline
+      tasks:
+        - task_key: build_features
+          spark_python_task:
+            python_file: ../scripts/run_feature_pipeline.py
+
+    training_job:
+      name: ml-training
+      tasks:
+        - task_key: train_model
+          spark_python_task:
+            python_file: ../scripts/run_training.py
+
+    monitoring_job:
+      name: ml-monitoring
+      tasks:
+        - task_key: monitor
+          spark_python_task:
+            python_file: ../scripts/run_monitoring.py
+
+    retraining_job:
+      name: ml-retraining
+      tasks:
+        - task_key: retrain
+          spark_python_task:
+            python_file: ../scripts/run_retraining.py
+
+targets:
+  dev:
+    workspace:
+      host: https://dbc-b576ddfe-9e99.cloud.databricks.com
+
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-b576ddfe-9e99.cloud.databricks.com
