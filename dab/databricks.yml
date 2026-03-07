@@ -55,9 +55,9 @@ resources:
 targets:
   dev:
     workspace:
-      host: https://dbc-<workspace-id>.cloud.databricks.com
+      host: https://dbc-b576ddfe-9e99.cloud.databricks.com
 
   prod:
     mode: production
     workspace:
-      host: https://dbc-<workspace-id>.cloud.databricks.com
+      host: https://dbc-b576ddfe-9e99.cloud.databricks.com
