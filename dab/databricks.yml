@@ -6,6 +6,9 @@ variables:
     default: main
   schema:
     default: ml_exam
+  existing_cluster_id:
+    description: Existing interactive cluster ID used by all job tasks
+    default: 0000-000000-xxxxxxxx
 
 sync:
   paths:
@@ -28,6 +31,7 @@ resources:
       name: ml-data-ingestion
       tasks:
         - task_key: ingest_seed_data
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_data_ingestion.py
 
@@ -35,6 +39,7 @@ resources:
       name: ml-feature-pipeline
       tasks:
         - task_key: build_features
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_feature_pipeline.py
 
@@ -42,6 +47,7 @@ resources:
       name: ml-training
       tasks:
         - task_key: train_model
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_training.py
 
@@ -49,6 +55,7 @@ resources:
       name: ml-monitoring
       tasks:
         - task_key: monitor
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_monitoring.py
 
@@ -56,6 +63,7 @@ resources:
       name: ml-retraining
       tasks:
         - task_key: retrain
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_retraining.py
 

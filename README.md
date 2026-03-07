@@ -64,7 +64,7 @@ Default Delta tables:
        - `os.environ["DBX_CATALOG"] = "main"`
    - **Databricks Asset Bundle variables (deployment-time):**
      - Use `--var` flags with bundle commands, for example:
-       - `databricks bundle deploy --target dev --var="catalog=main" --var="schema=ml_exam"`
+       - `databricks bundle deploy --target dev --var="catalog=main" --var="schema=ml_exam" --var="existing_cluster_id=<your-cluster-id>"`
      - This controls bundle resource names/values at deploy time.
    - **GitHub Actions (for CI/CD):**
      - Use repository/environment secrets for sensitive values (for example tokens), and workflow `env:` for non-sensitive defaults.
@@ -169,6 +169,7 @@ This repository now includes CI and CD workflows:
 - CD runs bundle commands from `dab/`, so the bundle root is `dab/databricks.yml`.
 - If you see `Provided PAT token does not have required scopes: scim`, switch CD auth to OAuth M2M (`DATABRICKS_CLIENT_ID` + `DATABRICKS_CLIENT_SECRET`) or use a PAT with the required scopes in your workspace.
 - If you see `path .../scripts/... is not contained in sync root path`, ensure the bundle includes repo-level sync paths. This project sets `sync.paths` in `dab/databricks.yml` to include `../scripts`, `../src`, and `../pyproject.toml`.
+- If validation fails with `Task ... requires a cluster or an environment to run`, provide `existing_cluster_id` via bundle variables (for example `--var="existing_cluster_id=<your-cluster-id>"`) or change tasks to use a `new_cluster`/`job_cluster_key`.
 
 ### Required GitHub Secrets for CD
 
@@ -193,6 +194,7 @@ Set these repository secrets before running CD:
 - `MLFLOW_EXPERIMENT_NAME` (default: `/Shared/ml_exam_project`)
 - `MODEL_NAME` (default: `main.ml_exam.exam_candidate_model`)
 - `SEED_DATA_PATH` (default: `/dbfs/tmp/ml_exam/raw/events.csv`)
+- `existing_cluster_id` (bundle variable; default placeholder in `dab/databricks.yml`, override at deploy time)
 
 ## Notes
 
