@@ -7,8 +7,8 @@ variables:
   schema:
     default: ml_exam
   existing_cluster_id:
-    description: Existing interactive cluster ID used by all job tasks
-    default: 0000-000000-xxxxxxxx
+    description: Existing interactive cluster ID used by all job tasks (override at deploy time)
+    default: REPLACE_WITH_REAL_CLUSTER_ID
 
 sync:
   paths:
@@ -24,7 +24,7 @@ resources:
 
   registered_models:
     exam_candidate_model:
-      name: ${var.catalog}.${var.schema}.exam_candidate_model
+      name: exam_candidate_model
 
   jobs:
     data_ingestion_job:

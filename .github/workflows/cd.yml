@@ -24,6 +24,7 @@ jobs:
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_CLUSTER_ID: ${{ secrets.DATABRICKS_CLUSTER_ID }}
 
     steps:
       - name: Checkout repository
@@ -44,6 +45,12 @@ jobs:
             exit 1
           fi
 
+
+          if [ -z "${DATABRICKS_CLUSTER_ID}" ]; then
+            echo "DATABRICKS_CLUSTER_ID secret must be configured with a real cluster ID for job tasks."
+            exit 1
+          fi
+
           if [ -n "${DATABRICKS_CLIENT_ID}" ] && [ -n "${DATABRICKS_CLIENT_SECRET}" ]; then
             echo "DATABRICKS_AUTH_TYPE=oauth-m2m" >> "$GITHUB_ENV"
             echo "Using OAuth M2M authentication (recommended)."
@@ -61,8 +68,8 @@ jobs:
 
       - name: Validate bundle
         working-directory: ./dab
-        run: databricks bundle validate --target "${BUNDLE_TARGET}"
+        run: databricks bundle validate --target "${BUNDLE_TARGET}" --var="existing_cluster_id=${DATABRICKS_CLUSTER_ID}"
 
       - name: Deploy bundle
         working-directory: ./dab
-        run: databricks bundle deploy --target "${BUNDLE_TARGET}"
+        run: databricks bundle deploy --target "${BUNDLE_TARGET}" --var="existing_cluster_id=${DATABRICKS_CLUSTER_ID}"

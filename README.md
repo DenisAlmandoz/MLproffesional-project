@@ -169,13 +169,16 @@ This repository now includes CI and CD workflows:
 - CD runs bundle commands from `dab/`, so the bundle root is `dab/databricks.yml`.
 - If you see `Provided PAT token does not have required scopes: scim`, switch CD auth to OAuth M2M (`DATABRICKS_CLIENT_ID` + `DATABRICKS_CLIENT_SECRET`) or use a PAT with the required scopes in your workspace.
 - If you see `path .../scripts/... is not contained in sync root path`, ensure the bundle includes repo-level sync paths. This project sets `sync.paths` in `dab/databricks.yml` to include `../scripts`, `../src`, and `../pyproject.toml`.
-- If validation fails with `Task ... requires a cluster or an environment to run`, provide `existing_cluster_id` via bundle variables (for example `--var="existing_cluster_id=<your-cluster-id>"`) or change tasks to use a `new_cluster`/`job_cluster_key`.
+- If deploy fails with `Cluster ... does not exist`, set `DATABRICKS_CLUSTER_ID` to a real, running cluster ID in your target workspace.
+- If deploy fails with `CreateRegisteredModel name ... is not a valid name`, use a workspace-model-safe name (no dots); this bundle uses `exam_candidate_model`.
+- If validation fails with `Task ... requires a cluster or an environment to run`, provide `existing_cluster_id` via bundle variables (for example `--var="existing_cluster_id=<your-cluster-id>"`). This workflow passes it from `DATABRICKS_CLUSTER_ID`.
 
 ### Required GitHub Secrets for CD
 
 Set these repository secrets before running CD:
 
 - `DATABRICKS_HOST` (for example: `https://dbc-xxxxxxxx.cloud.databricks.com`)
+- `DATABRICKS_CLUSTER_ID` (required for this bundle; existing cluster used by job tasks)
 - Authentication (choose one):
   - `DATABRICKS_TOKEN` (PAT; must include required scopes in your workspace)
   - `DATABRICKS_CLIENT_ID` + `DATABRICKS_CLIENT_SECRET` (OAuth M2M, recommended)
