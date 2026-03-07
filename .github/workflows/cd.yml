@@ -19,8 +19,11 @@ jobs:
   deploy-bundle:
     runs-on: ubuntu-latest
     env:
+      BUNDLE_TARGET: ${{ github.event.inputs.target || 'dev' }}
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
 
     steps:
       - name: Checkout repository
@@ -34,8 +37,32 @@ jobs:
       - name: Install Databricks CLI
         uses: databricks/setup-cli@main
 
+      - name: Verify Databricks credentials are configured
+        run: |
+          if [ -z "${DATABRICKS_HOST}" ]; then
+            echo "DATABRICKS_HOST secret must be configured."
+            exit 1
+          fi
+
+          if [ -n "${DATABRICKS_CLIENT_ID}" ] && [ -n "${DATABRICKS_CLIENT_SECRET}" ]; then
+            echo "DATABRICKS_AUTH_TYPE=oauth-m2m" >> "$GITHUB_ENV"
+            echo "Using OAuth M2M authentication (recommended)."
+            exit 0
+          fi
+
+          if [ -n "${DATABRICKS_TOKEN}" ]; then
+            echo "DATABRICKS_AUTH_TYPE=pat" >> "$GITHUB_ENV"
+            echo "Using PAT authentication. Ensure PAT has required scopes (including SCIM if your workspace enforces it)."
+            exit 0
+          fi
+
+          echo "Provide either PAT auth (DATABRICKS_TOKEN) or OAuth M2M auth (DATABRICKS_CLIENT_ID + DATABRICKS_CLIENT_SECRET)."
+          exit 1
+
       - name: Validate bundle
-        run: databricks bundle validate --target ${{ github.event.inputs.target || 'dev' }}
+        working-directory: ./dab
+        run: databricks bundle validate --target "${BUNDLE_TARGET}"
 
       - name: Deploy bundle
-        run: databricks bundle deploy --target ${{ github.event.inputs.target || 'dev' }}
+        working-directory: ./dab
+        run: databricks bundle deploy --target "${BUNDLE_TARGET}"

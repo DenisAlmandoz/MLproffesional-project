@@ -162,12 +162,21 @@ This repository now includes CI and CD workflows:
   - Triggered automatically on push to `main` or manually with `workflow_dispatch`.
   - Supports deployment targets `dev` and `prod`.
 
+
+### CD troubleshooting
+
+- If `databricks bundle validate --target dev` fails with `default auth: cannot configure default credentials`, configure auth secrets in GitHub (`DATABRICKS_TOKEN` or `DATABRICKS_CLIENT_ID` + `DATABRICKS_CLIENT_SECRET`) and rerun.
+- CD runs bundle commands from `dab/`, so the bundle root is `dab/databricks.yml`.
+- If you see `Provided PAT token does not have required scopes: scim`, switch CD auth to OAuth M2M (`DATABRICKS_CLIENT_ID` + `DATABRICKS_CLIENT_SECRET`) or use a PAT with the required scopes in your workspace.
+
 ### Required GitHub Secrets for CD
 
 Set these repository secrets before running CD:
 
 - `DATABRICKS_HOST` (for example: `https://dbc-xxxxxxxx.cloud.databricks.com`)
-- `DATABRICKS_TOKEN` (PAT or service principal token with bundle deploy permissions)
+- Authentication (choose one):
+  - `DATABRICKS_TOKEN` (PAT; must include required scopes in your workspace)
+  - `DATABRICKS_CLIENT_ID` + `DATABRICKS_CLIENT_SECRET` (OAuth M2M, recommended)
 
 ### Recommended release flow
 
