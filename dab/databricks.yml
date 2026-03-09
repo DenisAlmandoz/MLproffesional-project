@@ -66,6 +66,7 @@ resources:
 
 targets:
   dev:
+    mode: development
     workspace:
       host: https://dbc-b576ddfe-9e99.cloud.databricks.com
 
