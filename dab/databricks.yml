@@ -8,7 +8,7 @@ variables:
     default: ml_exam
   existing_cluster_id:
     description: Existing interactive cluster ID used by all job tasks (override at deploy time)
-    default: REPLACE_WITH_REAL_CLUSTER_ID
+    default: 42be771719f14826
 
 sync:
   paths:
