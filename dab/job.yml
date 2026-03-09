@@ -6,6 +6,15 @@ variables:
     default: main
   schema:
     default: ml_exam
+  existing_cluster_id:
+    description: Existing cluster used by job tasks
+
+sync:
+  paths:
+    - .
+    - ../scripts
+    - ../src
+    - ../pyproject.toml
 
 resources:
   experiments:
@@ -17,38 +26,40 @@ resources:
       name: ${var.catalog}.${var.schema}.exam_candidate_model
 
   jobs:
-    data_ingestion_job:
-      name: ml-data-ingestion
+    ml_lifecycle_job:
+      name: ml-lifecycle-end-to-end
+
       tasks:
         - task_key: ingest_seed_data
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_data_ingestion.py
 
-    feature_pipeline_job:
-      name: ml-feature-pipeline
-      tasks:
         - task_key: build_features
+          depends_on:
+            - task_key: ingest_seed_data
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_feature_pipeline.py
 
-    training_job:
-      name: ml-training
-      tasks:
         - task_key: train_model
+          depends_on:
+            - task_key: build_features
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_training.py
 
-    monitoring_job:
-      name: ml-monitoring
-      tasks:
         - task_key: monitor
+          depends_on:
+            - task_key: train_model
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_monitoring.py
 
-    retraining_job:
-      name: ml-retraining
-      tasks:
         - task_key: retrain
+          depends_on:
+            - task_key: monitor
+          existing_cluster_id: ${var.existing_cluster_id}
           spark_python_task:
             python_file: ../scripts/run_retraining.py
 
