@@ -8,6 +8,7 @@ variables:
     default: ml_exam
   existing_cluster_id:
     description: Existing cluster used by job tasks
+    default: 42be771719f14826
 
 sync:
   paths:
