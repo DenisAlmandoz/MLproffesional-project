@@ -1,6 +1,7 @@
 bundle:
   name: ml_exam_lifecycle_project
 
+
 variables:
   catalog:
     default: main
